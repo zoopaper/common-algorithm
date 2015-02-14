@@ -1,6 +1,5 @@
 package net.snails.common.algorithm.consistenthash;
 
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
