@@ -37,7 +37,7 @@ public class BM25 {
 	Map<String, Integer> df;
 
 	/**
-	 * IDF
+	 * IDF(逆文档频率)
 	 */
 	Map<String, Double> idf;
 

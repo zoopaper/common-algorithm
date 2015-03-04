@@ -1,9 +1,17 @@
 package net.snails.common.algorithm.summary;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.TreeMap;
+
 import org.ansj.domain.Term;
 import org.ansj.splitWord.analysis.ToAnalysis;
 
-import java.util.*;
+import com.google.common.base.Joiner;
 
 /**
  * auto summary
@@ -60,22 +68,16 @@ public class TextRankSummary {
 	 */
 	BM25 bm25;
 
-	public TextRankSummary(List<List<String>> docs) {
-		this.docs = docs;
-		bm25 = new BM25(docs);
-		D = docs.size();
-		weight = new double[D][D];
-		weight_sum = new double[D];
-		vertex = new double[D];
-		top = new TreeMap<Double, Integer>(Collections.reverseOrder());
-		solve();
+	public TextRankSummary() {
 	}
+
+
 
 	private void solve() {
 		int cnt = 0;
 		for (List<String> sentence : docs) {
 			double[] scores = bm25.simAll(sentence);
-			// System.out.println(Arrays.toString(scores));
+			
 			weight[cnt] = scores;
 			weight_sum[cnt] = sum(scores) - scores[cnt]; // 减掉自己，自己跟自己肯定最相似
 			vertex[cnt] = 1.0;
@@ -113,7 +115,7 @@ public class TextRankSummary {
 	 *            要几个
 	 * @return 关键句子的下标
 	 */
-	public int[] getTopSentence(int size) {
+	public int[] getSentence(int size) {
 		Collection<Integer> values = top.values();
 		size = Math.min(size, values.size());
 		int[] indexArray = new int[size];
@@ -138,20 +140,6 @@ public class TextRankSummary {
 		return total;
 	}
 
-	public static void main(String[] args) {
-		String document = "算法可大致分为基本算法、数据结构的算法、数论算法、计算几何的算法、图的算法、动态规划以及数值分析、加密算法、排序算法、检索算法、随机化算法、并行算法、厄米变形模型、随机森林算法。\n"
-				+ "算法可以宽泛的分为三类，\n" + "一，有限的确定性算法，这类算法在有限的一段时间内终止。他们可能要花很长时间来执行指定的任务，但仍将在一定的时间内终止。这类算法得出的结果常取决于输入值。\n"
-				+ "二，有限的非确定算法，这类算法在有限的时间内终止。然而，对于一个（或一些）给定的数值，算法的结果并不是唯一的或确定的。\n"
-				+ "三，无限的算法，是那些由于没有定义终止定义条件，或定义的条件无法由输入的数据满足而不终止运行的算法。通常，无限算法的产生是由于未能确定的定义终止条件。";
-		System.out.println(TextRankSummary.getTopSentenceList(document, 3));
-	}
-
-	/**
-	 * 将文章分割为句子
-	 * 
-	 * @param document
-	 * @return
-	 */
 	static List<String> spiltSentence(String document) {
 		List<String> sentences = new ArrayList<String>();
 		if (document == null)
@@ -172,36 +160,27 @@ public class TextRankSummary {
 	}
 
 	/**
-	 * 是否应当将这个term纳入计算，词性属于名词、动词、副词、形容词
+	 * 词性属于名词、动词、副词、形容词的加入计算
 	 * 
 	 * @param term
-	 * @return 是否应当
+	 * @return
 	 */
 	public static boolean shouldInclude(Term term) {
-		if (term.getNatureStr().startsWith("n") || term.getNatureStr().startsWith("v")
-				|| term.getNatureStr().startsWith("d") || term.getNatureStr().startsWith("a")) {
-			// TODO 你需要自己实现一个停用词表
-			// if (!StopWordDictionary.contains(term.getName()))
-			// {
-			return true;
-			// }
+		if (term.getNatureStr().startsWith("n") || term.getNatureStr().startsWith("v") || term.getNatureStr().startsWith("d")
+				|| term.getNatureStr().startsWith("a")) {
+			if (!StopWord.contains(term.getName())) {
+				return true;
+			}
 		}
-
 		return false;
 	}
 
 	/**
-	 * 一句话调用接口
-	 * 
-	 * @param document
-	 *            目标文档
-	 * @param size
-	 *            需要的关键句的个数
-	 * @return 关键句列表
+	 * @param sentenceList
+	 * @return
 	 */
-	public static List<String> getTopSentenceList(String document, int size) {
-		List<String> sentenceList = spiltSentence(document);
-		List<List<String>> docs = new ArrayList<List<String>>();
+	private List<List<String>> getParticipleSentence(List<String> sentenceList) {
+		List<List<String>> participleList = new ArrayList<List<String>>();
 		for (String sentence : sentenceList) {
 			List<Term> termList = ToAnalysis.parse(sentence);
 			List<String> wordList = new LinkedList<String>();
@@ -210,14 +189,50 @@ public class TextRankSummary {
 					wordList.add(term.getRealName());
 				}
 			}
-			docs.add(wordList);
+			participleList.add(wordList);
 		}
-		TextRankSummary textRankSummary = new TextRankSummary(docs);
-		int[] topSentence = textRankSummary.getTopSentence(size);
+		return participleList;
+	}
+
+	public List<String> getSentenceList(String document, int size) {
+		List<String> sentenceList = spiltSentence(document);
+		List<List<String>> docs = getParticipleSentence(sentenceList);
+		init(docs);
+		int[] topSentence = getSentence(size);
 		List<String> resultList = new LinkedList<String>();
 		for (int i : topSentence) {
 			resultList.add(sentenceList.get(i).trim());
 		}
 		return resultList;
+	}
+
+	/**
+	 * 
+	 * @param doc
+	 * @param size
+	 * @return
+	 */
+	public String summary(String doc, int size) {
+
+		List<String> list = this.getSentenceList(doc, size);
+
+		String summary = Joiner.on("，").join(list);
+
+		summary = summary.replaceAll("\\s*", "").replaceAll("　　", "") + "。";
+
+		return summary;
+	}
+
+	private void init(List<List<String>> docs) {
+
+		this.docs = docs;
+		bm25 = new BM25(docs);
+		D = docs.size();
+		weight = new double[D][D];
+		weight_sum = new double[D];
+		vertex = new double[D];
+		top = new TreeMap<Double, Integer>(Collections.reverseOrder());
+		solve();
+
 	}
 }

@@ -27,6 +27,11 @@
 			<artifactId>ansj_seg</artifactId>
 			<version>2.0.7</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>18.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
