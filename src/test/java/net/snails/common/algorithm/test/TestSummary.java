@@ -10,7 +10,7 @@ public class TestSummary {
 		
 		String corpus = CorpusLoad.getText("extract.txt");
 		String str = HtmlUtil.removeAllHtmlTag(corpus);
-		String summary = new TextRankSummary().summary(str, 5);
+		String summary = new TextRankSummary().toSummary(str, 5);
 		System.out.println(summary);
 
 	}

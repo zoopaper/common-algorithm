@@ -8,35 +8,36 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 
+import net.snails.common.algorithm.util.StopWord;
+
 import org.ansj.domain.Term;
 import org.ansj.splitWord.analysis.ToAnalysis;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 
 /**
- * auto summary
- * 
  * @author krisjin
  * @date 2015-1-15
  */
-public class TextRankSummary {
+public class TextRankSummary implements Summary{
 
 	/**
-	 * 阻尼系数（Damping Factor），一般取值为0.85
+	 * 阻尼系数（Damping Factor）一般取值为0.85
 	 */
-	final double d = 0.85f;
+	private final double d = 0.85f;
 
 	/**
 	 * 最大迭代次数
 	 */
-	final int max_iter = 200;
+	private final int MAX_ITER = 200;
 
-	final double min_diff = 0.001f;
+	private final double MIN_DIFF = 0.001f;
 
 	/**
-	 * 文档句子的个数
+	 * 语料文档数
 	 */
-	int D;
+	private int DOCS_NUM;
 
 	/**
 	 * 拆分为[句子[单词]]形式的文档
@@ -56,7 +57,7 @@ public class TextRankSummary {
 	/**
 	 * 该句子和其他句子相关程度之和
 	 */
-	double[] weight_sum;
+	double[] weightSum;
 
 	/**
 	 * 迭代之后收敛的权重
@@ -79,19 +80,19 @@ public class TextRankSummary {
 			double[] scores = bm25.simAll(sentence);
 			
 			weight[cnt] = scores;
-			weight_sum[cnt] = sum(scores) - scores[cnt]; // 减掉自己，自己跟自己肯定最相似
+			weightSum[cnt] = sum(scores) - scores[cnt]; // 减掉自己，自己跟自己肯定最相似
 			vertex[cnt] = 1.0;
 			++cnt;
 		}
-		for (int _ = 0; _ < max_iter; ++_) {
-			double[] m = new double[D];
+		for (int _ = 0; _ < MAX_ITER; ++_) {
+			double[] m = new double[DOCS_NUM];
 			double max_diff = 0;
-			for (int i = 0; i < D; ++i) {
+			for (int i = 0; i < DOCS_NUM; ++i) {
 				m[i] = 1 - d;
-				for (int j = 0; j < D; ++j) {
-					if (j == i || weight_sum[j] == 0)
+				for (int j = 0; j < DOCS_NUM; ++j) {
+					if (j == i || weightSum[j] == 0)
 						continue;
-					m[i] += (d * weight[j][i] / weight_sum[j] * vertex[j]);
+					m[i] += (d * weight[j][i] / weightSum[j] * vertex[j]);
 				}
 				double diff = Math.abs(m[i] - vertex[i]);
 				if (diff > max_diff) {
@@ -99,11 +100,11 @@ public class TextRankSummary {
 				}
 			}
 			vertex = m;
-			if (max_diff <= min_diff)
+			if (max_diff <= MIN_DIFF)
 				break;
 		}
 		// 我们来排个序吧
-		for (int i = 0; i < D; ++i) {
+		for (int i = 0; i < DOCS_NUM; ++i) {
 			top.put(vertex[i], i);
 		}
 	}
@@ -140,20 +141,17 @@ public class TextRankSummary {
 		return total;
 	}
 
-	static List<String> spiltSentence(String document) {
+	static List<String> spiltSentence(String doc) {
 		List<String> sentences = new ArrayList<String>();
-		if (document == null)
+		if (doc == null)
 			return sentences;
-		for (String line : document.split("[\r\n]")) {
-			line = line.trim();
-			if (line.length() == 0)
-				continue;
-			for (String sent : line.split("[，,。:：“”？?！!；;]")) {
+		
+		String[] fragArr =doc.split("[，,。:：“”？?！!；;]");
+			for (String sent : fragArr) {
 				sent = sent.trim();
-				if (sent.length() == 0)
+				if (Strings.isNullOrEmpty(sent))
 					continue;
-				sentences.add(sent);
-			}
+			sentences.add(sent);
 		}
 
 		return sentences;
@@ -206,13 +204,7 @@ public class TextRankSummary {
 		return resultList;
 	}
 
-	/**
-	 * 
-	 * @param doc
-	 * @param size
-	 * @return
-	 */
-	public String summary(String doc, int size) {
+	public String toSummary(String doc, int size) {
 
 		List<String> list = this.getSentenceList(doc, size);
 
@@ -227,10 +219,10 @@ public class TextRankSummary {
 
 		this.docs = docs;
 		bm25 = new BM25(docs);
-		D = docs.size();
-		weight = new double[D][D];
-		weight_sum = new double[D];
-		vertex = new double[D];
+		DOCS_NUM = docs.size();
+		weight = new double[DOCS_NUM][DOCS_NUM];
+		weightSum = new double[DOCS_NUM];
+		vertex = new double[DOCS_NUM];
 		top = new TreeMap<Double, Integer>(Collections.reverseOrder());
 		solve();
 

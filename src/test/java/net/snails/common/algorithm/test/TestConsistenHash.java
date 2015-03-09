@@ -1,13 +1,12 @@
-package net.snails.common.algorithm.consistenthash;
+package net.snails.common.algorithm.test;
 
 import java.util.Collection;
 import java.util.HashSet;
 
-/**
- * @author krisjin
- * @date 2015年1月21日
- */
-public class Test {
+import net.snails.common.algorithm.consistenthash.ConsistentHash;
+import net.snails.common.algorithm.consistenthash.MD5Hash;
+
+public class TestConsistenHash {
 	public static void main(String[] args) {
 		// 定义几个服务器的名称，存放到集合中
 		Collection<String> nodes = new HashSet<String>();

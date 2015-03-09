@@ -1,4 +1,4 @@
-package net.snails.common.algorithm.summary;
+package net.snails.common.algorithm.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;

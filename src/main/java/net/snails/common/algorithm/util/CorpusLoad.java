@@ -5,15 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import net.snails.common.algorithm.test.TestSummary;
-
 public class CorpusLoad {
 
 	public static String getText(String path) {
 		StringBuilder sb = new StringBuilder();
 
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(TestSummary.class.getResourceAsStream("/" + path)));
+			BufferedReader br = new BufferedReader(new InputStreamReader(CorpusLoad.class.getResourceAsStream("/" + path)));
 
 			String line = "";
 			line = br.readLine();

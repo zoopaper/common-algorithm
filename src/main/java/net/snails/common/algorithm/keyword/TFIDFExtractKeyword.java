@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import net.snails.common.algorithm.summary.StopWord;
-import net.snails.common.algorithm.util.CorpusLoad;
+import net.snails.common.algorithm.util.StopWord;
 
 import org.ansj.domain.Term;
 import org.ansj.splitWord.analysis.ToAnalysis;
@@ -18,22 +18,32 @@ import org.ansj.splitWord.analysis.ToAnalysis;
 import com.google.common.base.Strings;
 
 /**
- * TF-IDF关键词提取
- * @author kris
- *
+ * TF-IDF关键字提取
+ * 
+ * @author krisjin
+ * 
  */
-public class TFIDF {
+public class TFIDFExtractKeyword implements ExtractWord {
 
-	private int docNum;
+	/**
+	 * 语料文档总数
+	 */
+	private int DOC_NUM;
 
 	/**
 	 * 文档中划分的句子的词频统计
 	 */
-	private Map<String, Integer>[] stf;
+	private Map<String, Integer>[] FRAGMENT_TF;
 
-	private Map<String, Integer> atf;
+	/**
+	 * 词频
+	 */
+	private Map<String, Integer> TF;
 
-	private Map<String, Double> idf;
+	/**
+	 * 逆文档词频
+	 */
+	private Map<String, Double> IDF;
 
 	/**
 	 * 将文档 进行片段式的划分
@@ -47,9 +57,9 @@ public class TFIDF {
 		if (doc == null)
 			return sentences;
 
-		String[] senArr = doc.split("[，,。:：“”？?！!；;]");
+		String[] fragArr = doc.split("[，,。:：“”？?！!；;]");
 
-		for (String sen : senArr) {
+		for (String sen : fragArr) {
 			sen = sen.trim();
 			if (Strings.isNullOrEmpty(sen))
 				continue;
@@ -59,55 +69,66 @@ public class TFIDF {
 		return sentences;
 	}
 
-	private void processTFIDF(List<List<String>> wordFragment) {
-		stf = new Map[wordFragment.size()];
-		atf = new TreeMap<String, Integer>();
-		idf = new TreeMap<String, Double>();
+	private void process(List<List<String>> wordFragment) {
+		FRAGMENT_TF = new Map[wordFragment.size()];
+		TF = new TreeMap<String, Integer>();
+		IDF = new TreeMap<String, Double>();
 		int index = 0;
+
 		for (List<String> frag : wordFragment) {
-			Map<String, Integer> tf = new TreeMap<String, Integer>();
+			Map<String, Integer> tmpTF = new TreeMap<String, Integer>();
 			for (String word : frag) {
-				Integer freq = tf.get(word);
+				Integer freq = tmpTF.get(word);
 				freq = (freq == null ? 0 : freq) + 1;
-				tf.put(word, freq);
+				tmpTF.put(word, freq);
 			}
-			stf[index] = tf;
+			FRAGMENT_TF[index] = tmpTF;
 
-			for (Map.Entry<String, Integer> entry : tf.entrySet()) {
+			for (Map.Entry<String, Integer> entry : tmpTF.entrySet()) {
 				String word = entry.getKey();
-				Integer freq = atf.get(word);
+				Integer freq = TF.get(word);
 
 				freq = (freq == null ? 0 : freq) + 1;
-				atf.put(word, freq);
+				TF.put(word, freq);
 
 			}
 			++index;
 		}
 
-		for (Map.Entry<String, Integer> entry : atf.entrySet()) {
+		for (Map.Entry<String, Integer> entry : TF.entrySet()) {
 			String word = entry.getKey();
-			Integer freq = entry.getValue();
 
-			idf.put(word, Math.log(docNum - freq + 0.5) - Math.log(freq + 0.5));
+			IDF.put(word, Math.log(DOC_NUM / (getIncludeWordDocs(FRAGMENT_TF, word) + 1)));
 
 		}
 
 	}
 
-	private Map<String, Double> getKeywordList() {
+	private int getIncludeWordDocs(Map<String, Integer>[] fragmentDocs, String word) {
+		AtomicInteger ai = new AtomicInteger();
+		for (Map<String, Integer> frag : fragmentDocs) {
+
+			if (frag.containsKey(word)) {
+				ai.incrementAndGet();
+			}
+		}
+		return ai.get();
+	}
+
+	private List<Map.Entry<String, Double>> getKeywordList() {
 
 		Map<String, Double> result = new TreeMap<String, Double>();
 
-		for (Map.Entry<String, Integer> entry : atf.entrySet()) {
+		for (Map.Entry<String, Integer> entry : TF.entrySet()) {
 
 			String word = entry.getKey();
 			Integer freq = entry.getValue();
 
-			if (idf.containsKey(word)) {
-				double val = ((double) freq / (double) atf.size()) * (idf.get(word));
+			if (IDF.containsKey(word)) {
+				double val = ((double) freq / (double) TF.size()) * (IDF.get(word));
 				result.put(word, val);
 			} else {
-				result.put(word, ((double) freq / atf.size()));
+				result.put(word, ((double) freq / TF.size()));
 			}
 
 		}
@@ -115,8 +136,7 @@ public class TFIDF {
 		List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(result.entrySet());
 
 		Collections.sort(list, new MapValueComparator());
-
-		return result;
+		return list;
 	}
 
 	private List<List<String>> getParticipleFragment(List<String> sentences) {
@@ -139,23 +159,39 @@ public class TFIDF {
 				wordFragment.add(wordList);
 		}
 
-		docNum = wordFragment.size();
+		DOC_NUM = wordFragment.size();
 
 		return wordFragment;
 	}
 
-	public List<String> extractKeyword(String doc, int size) {
+	private List<String> extractKeyword(String doc, int size) {
+
+		List<String> result = new ArrayList<String>();
 
 		List<List<String>> fragList = getParticipleFragment(getFragmentList(doc));
 
-		processTFIDF(fragList);
+		process(fragList);
 
-		Map<String, Double> list = getKeywordList();
+		List<Map.Entry<String, Double>> keywords = getKeywordList();
 
-		return null;
+		if (keywords.size() <= size) {
+			for (Map.Entry<String, Double> entry : keywords) {
+				result.add(entry.getKey());
+			}
+		} else {
+			int i = 1;
+			for (Map.Entry<String, Double> entry : keywords) {
+				result.add(entry.getKey());
+				if (i == size)
+					break;
+				i++;
+			}
+		}
+
+		return result;
 	}
 
-	public static boolean validateWord(Term term) {
+	private  boolean validateWord(Term term) {
 		if (term.getNatureStr().startsWith("n") || term.getNatureStr().startsWith("v") || term.getNatureStr().startsWith("d")
 				|| term.getNatureStr().startsWith("a")) {
 			if (!StopWord.contains(term.getName())) {
@@ -165,16 +201,10 @@ public class TFIDF {
 		return false;
 	}
 
-	public static void main(String[] args) {
+	@Override
+	public List<String> extract(String docs, int limitSize) {
 
-		TFIDF ti = new TFIDF();
-
-		String corpus = CorpusLoad.getText("extract.txt");
-
-		ti.extractKeyword(corpus, 12);
-
-		int aa = 99;
-
+		return extractKeyword(docs, limitSize);
 	}
 
 }

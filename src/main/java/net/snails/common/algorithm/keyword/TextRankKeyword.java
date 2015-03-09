@@ -1,4 +1,6 @@
-package net.snails.common.algorithm.summary;
+package net.snails.common.algorithm.keyword;
+
+import net.snails.common.algorithm.util.CorpusLoad;
 
 import org.ansj.domain.Term;
 import org.ansj.splitWord.analysis.ToAnalysis;
@@ -14,7 +16,7 @@ import java.util.*;
 public class TextRankKeyword {
 	public static final int nKeyword = 10;
 	/**
-	 * 阻尼系数（ＤａｍｐｉｎｇＦａｃｔｏｒ），一般取值为0.85
+	 * 阻尼系数（Damping Factor）一般取值为0.85
 	 */
 	static final float d = 0.85f;
 	/**
@@ -99,7 +101,9 @@ public class TextRankKeyword {
 	}
 
 	public static void main(String[] args) {
-		String content = "程序员(英文Programmer)是从事程序开发、维护的专业人员。一般将程序员分为程序设计人员和程序编码人员，但两者的界限并不非常清楚，特别是在中国。软件从业人员分为初级程序员、高级程序员、系统分析员和项目经理四大类。";
+
+		String content = CorpusLoad.getText("extract.txt");
+		;
 		System.out.println(new TextRankKeyword().getKeyword("", content));
 
 	}
@@ -111,8 +115,8 @@ public class TextRankKeyword {
 	 * @return 是否应当
 	 */
 	public boolean shouldInclude(Term term) {
-		if (term.getNatureStr().startsWith("n") || term.getNatureStr().startsWith("v")
-				|| term.getNatureStr().startsWith("d") || term.getNatureStr().startsWith("a")) {
+		if (term.getNatureStr().startsWith("n") || term.getNatureStr().startsWith("v") || term.getNatureStr().startsWith("d")
+				|| term.getNatureStr().startsWith("a")) {
 			// TODO 你需要自己实现一个停用词表
 			// if (!StopWordDictionary.contains(term.getName()))
 			// {
