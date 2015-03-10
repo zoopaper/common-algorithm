@@ -1,6 +1,7 @@
 package net.snails.common.algorithm.keyword;
 
 import net.snails.common.algorithm.util.CorpusLoad;
+import net.snails.common.algorithm.util.StopWord;
 
 import org.ansj.domain.Term;
 import org.ansj.splitWord.analysis.ToAnalysis;
@@ -16,7 +17,7 @@ import java.util.*;
 public class TextRankKeyword {
 	public static final int nKeyword = 10;
 	/**
-	 * 阻尼系数（Damping Factor）一般取值为0.85
+	 * 阻尼系数一般取值为0.85
 	 */
 	static final float d = 0.85f;
 	/**
@@ -29,19 +30,17 @@ public class TextRankKeyword {
 		// jdk bug : Exception in thread "main"
 		// java.lang.IllegalArgumentException: Comparison method violates its
 		// general contract!
-		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+//		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
 	}
 
 	public String getKeyword(String title, String content) {
 		List<Term> termList = ToAnalysis.parse(title + content);
-		// System.out.println(termList);
 		List<String> wordList = new ArrayList<String>();
 		for (Term t : termList) {
 			if (shouldInclude(t)) {
 				wordList.add(t.getName());
 			}
 		}
-		// System.out.println(wordList);
 		Map<String, Set<String>> words = new HashMap<String, Set<String>>();
 		Queue<String> que = new LinkedList<String>();
 		for (String w : wordList) {
@@ -117,11 +116,9 @@ public class TextRankKeyword {
 	public boolean shouldInclude(Term term) {
 		if (term.getNatureStr().startsWith("n") || term.getNatureStr().startsWith("v") || term.getNatureStr().startsWith("d")
 				|| term.getNatureStr().startsWith("a")) {
-			// TODO 你需要自己实现一个停用词表
-			// if (!StopWordDictionary.contains(term.getName()))
-			// {
-			return true;
-			// }
+			if (!StopWord.contains(term.getName())) {
+				return true;
+			}
 		}
 
 		return false;

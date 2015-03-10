@@ -67,7 +67,7 @@ public class TextRankSummary implements Summary{
 	/**
 	 * BM25相似度
 	 */
-	BM25 bm25;
+	BM25SimilarityScore bm25;
 
 	public TextRankSummary() {
 	}
@@ -103,7 +103,7 @@ public class TextRankSummary implements Summary{
 			if (max_diff <= MIN_DIFF)
 				break;
 		}
-		// 我们来排个序吧
+		
 		for (int i = 0; i < DOCS_NUM; ++i) {
 			top.put(vertex[i], i);
 		}
@@ -127,12 +127,7 @@ public class TextRankSummary implements Summary{
 		return indexArray;
 	}
 
-	/**
-	 * 简单的求和
-	 * 
-	 * @param array
-	 * @return
-	 */
+	
 	private static double sum(double[] array) {
 		double total = 0;
 		for (double v : array) {
@@ -218,7 +213,7 @@ public class TextRankSummary implements Summary{
 	private void init(List<List<String>> docs) {
 
 		this.docs = docs;
-		bm25 = new BM25(docs);
+		bm25 = new BM25SimilarityScore(docs);
 		DOCS_NUM = docs.size();
 		weight = new double[DOCS_NUM][DOCS_NUM];
 		weightSum = new double[DOCS_NUM];

@@ -5,12 +5,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * 搜索相关性评分算法
- * 
+ * BM25实现
  * @author krisjin
  * @date 2015-1-15
  */
-public class BM25 {
+public class BM25SimilarityScore {
 	/**
 	 * 文档句子的个数
 	 */
@@ -51,7 +50,7 @@ public class BM25 {
 	 */
 	final static float b = 0.75f;
 
-	public BM25(List<List<String>> docs) {
+	public BM25SimilarityScore(List<List<String>> docs) {
 		this.docs = docs;
 		D = docs.size();
 		for (List<String> sentence : docs) {
