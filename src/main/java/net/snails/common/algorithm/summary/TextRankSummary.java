@@ -128,7 +128,7 @@ public class TextRankSummary implements Summary{
 	}
 
 	
-	private static double sum(double[] array) {
+	private  double sum(double[] array) {
 		double total = 0;
 		for (double v : array) {
 			total += v;
@@ -136,7 +136,7 @@ public class TextRankSummary implements Summary{
 		return total;
 	}
 
-	static List<String> spiltSentence(String doc) {
+	private List<String> spiltSentence(String doc) {
 		List<String> sentences = new ArrayList<String>();
 		if (doc == null)
 			return sentences;
@@ -158,7 +158,7 @@ public class TextRankSummary implements Summary{
 	 * @param term
 	 * @return
 	 */
-	public static boolean shouldInclude(Term term) {
+	public  boolean shouldInclude(Term term) {
 		if (term.getNatureStr().startsWith("n") || term.getNatureStr().startsWith("v") || term.getNatureStr().startsWith("d")
 				|| term.getNatureStr().startsWith("a")) {
 			if (!StopWord.contains(term.getName())) {
