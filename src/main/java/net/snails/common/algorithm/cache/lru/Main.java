@@ -16,6 +16,8 @@ public class Main {
 
         LRUCacheDelegation<Object, CacheElement> cacheDelegation = new LRUCacheDelegation<Object, CacheElement>(10000);
 
+        LRUCacheImpl<Object, CacheElement> lruCache1 = new LRUCacheImpl<Object, CacheElement>(90);
+
 
 //        for (int i = 0; i < 20000; i++) {
 //
@@ -27,13 +29,13 @@ public class Main {
 //
 //        }
 
-        for (int i = 0; i < 20000; i++) {
+        for (int i = 1; i <= 100; i++) {
 
             CacheElement ce = new CacheElement();
             ce.setKey(i);
             ce.setValue("V" + i);
 
-            cacheDelegation.put(i, ce);
+            lruCache1.put(i, ce);
 
         }
         CacheElement cacheElement = cacheDelegation.get(10009);
