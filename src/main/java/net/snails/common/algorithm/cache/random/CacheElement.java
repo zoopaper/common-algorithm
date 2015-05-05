@@ -1,4 +1,4 @@
-package net.snails.common.algorithm.cache;
+package net.snails.common.algorithm.cache.random;
 
 /**
  * 缓存实体

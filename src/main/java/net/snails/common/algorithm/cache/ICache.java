@@ -1,5 +1,7 @@
 package net.snails.common.algorithm.cache;
 
+import net.snails.common.algorithm.cache.random.CacheElement;
+
 /**
  * <p/>
  * User : krisibm@163.com

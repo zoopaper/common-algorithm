@@ -1,4 +1,6 @@
-package net.snails.common.algorithm.cache;
+package net.snails.common.algorithm.cache.random;
+
+import net.snails.common.algorithm.cache.ICache;
 
 /**
  * <p/>

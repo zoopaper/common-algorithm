@@ -1,4 +1,4 @@
-package net.snails.common.algorithm.cache;
+package net.snails.common.algorithm.cache.random;
 
 /**
  * <p/>
@@ -24,11 +24,11 @@ public class Main {
 
         System.out.println("key:"+cacheElement.getKey()+" value:"+cacheElement.getValue());
 
-        radomCache.put(100,"name100x");
+        radomCache.put(100, "name100x");
 
         CacheElement cacheElement2 =radomCache.get(100);
 
-        System.out.println("key:"+cacheElement2.getKey()+" value:"+cacheElement2.getValue());
+        System.out.println("key:" + cacheElement2.getKey() + " value:" + cacheElement2.getValue());
 
         System.out.println(radomCache.cacheSize.get());
 
