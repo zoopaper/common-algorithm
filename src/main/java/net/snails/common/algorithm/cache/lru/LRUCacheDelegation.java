@@ -2,6 +2,7 @@ package net.snails.common.algorithm.cache.lru;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -18,17 +19,23 @@ public class LRUCacheDelegation<K, V> {
 
     private final float DEFAULT_LOAD_FACTOR = 0.75f;
 
-    protected LinkedHashMap<K, V> map;
+    protected Map<K, V> map;
 
     public LRUCacheDelegation(int maxCacheSize) {
         MAX_CACHE_SIZE = maxCacheSize;
         int capacity = (int) Math.ceil(maxCacheSize / DEFAULT_LOAD_FACTOR) + 1;
-        map = new LinkedHashMap<K, V>(capacity, DEFAULT_LOAD_FACTOR, true) {
+        map = Collections.synchronizedMap(new LinkedHashMap<K, V>(capacity, DEFAULT_LOAD_FACTOR, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 return size() > MAX_CACHE_SIZE;
             }
-        };
+        });
+//        map = new LinkedHashMap<K, V>(capacity, DEFAULT_LOAD_FACTOR, true) {
+//            @Override
+//            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+//                return size() > MAX_CACHE_SIZE;
+//            }
+//        };
 
     }
 
