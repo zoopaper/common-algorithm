@@ -10,10 +10,7 @@ public class TestKeyword {
 	
 	public static void main(String[] args) {
 		ExtractWord ew =new TFIDFExtractKeyword();
-		
-		
 		List<String>  keywords =ew.extract(CorpusLoad.getText("extract.txt"), 12);
-		
 		for(String keyword:keywords){
 			System.out.print(keyword+" | ");
 		}
